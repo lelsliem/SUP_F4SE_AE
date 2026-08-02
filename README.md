@@ -10,7 +10,7 @@ This repository is an unofficial Next Generation compatibility update for Tomm's
 
 SUP F4SE mod. It updates address handling and runtime compatibility so the
 
-plugin works with Fallout 4 NG/AE (runtime 1.11.221) and F4SE 0.7.8.
+plugin works with Fallout 4 AE (runtime 1.11.221) and F4SE 0.7.8.
 
 
 
@@ -34,7 +34,7 @@ Target runtime: Fallout 4 v1.11.221 (NG/AE)
 
 
 
-Address Library: NG format support
+Address Library: AE format support
 
 
 
@@ -134,7 +134,7 @@ Install F4SE 0.7.8 manually.
 
 
 
-Install Address Library (NG version).
+Install Address Library (AE version).
 
 
 
@@ -158,7 +158,7 @@ Copy SUP\_F4SE.dll to:
 
 Ensure Address Library database file for your runtime is present:
 
-version-1-11-221-0.bin (or the matching NG file)
+version-1-11-221-0.bin (or the matching AE file)
 
 
 
@@ -186,7 +186,19 @@ Example build steps (Windows, PowerShell or CMD):
 
 Prepare f4se build (example used in this project):
 
+git clone https://github.com/ianpatt/common.git common
+
+git clone https://github.com/ianpatt/f4se.git f4se
+
+git clone https://github.com/lelsliem/SUP\_F4SE\_AE
+
+
+
 cd C:\\SUP\_F4SE
+
+rmdir /s /q common\\build
+
+rmdir /s /q common\\install
 
 rmdir /s /q f4se\\build
 
@@ -194,17 +206,15 @@ rmdir /s /q f4se\\install
 
 
 
-cmake -B f4se/build -S f4se ^
+cmake -B common/build -S common -DCMAKE\_INSTALL\_PREFIX=common/install
 
-\-DCMAKE\_INSTALL\_PREFIX=f4se/install ^
-
-\-DCMAKE\_PREFIX\_PATH=C:/SUP\_F4SE/common/install ^
-
-\-DCMAKE\_MSVC\_RUNTIME\_LIBRARY=MultiThreaded ^
-
-\-DF4SE\_STATIC\_LIB=ON
+cmake --build common/build --config Release --target install
 
 
+
+cmake -B f4se/build -S f4se -DCMAKE\_INSTALL\_PREFIX=f4se/install -DCMAKE\_PREFIX\_PATH=C:/SUP\_F4SEAE/common/install -DCMAKE\_MSVC\_RUNTIME\_LIBRARY=MultiThreaded -DF4SE\_STATIC\_LIB=ON
+
+cmake --build f4se/build --config Release
 
 cmake --build f4se/build --config Release
 
@@ -233,58 +243,6 @@ If you change F4SE build options, rebuild dependent libs (common, f4se\_common, 
 The project uses absolute library paths by default; you can change these to
 
 relative paths and set AdditionalLibraryDirectories in the vcxproj.
-
-
-
-Key source files
-
-
-
-SUP\_AddressLib.h / SUP\_AddressLib.cpp   (Address Library loader and resolver)
-
-
-
-SUP\_F4SE.cpp                            (main plugin code, initialization)
-
-
-
-Tomm\_.h / Tomm\_.cpp                   (original function implementations)
-
-
-
-exports.def                              (exported symbols)
-
-
-
-Address Library mappings (sample)
-
-The project maps many game functions to Address Library IDs. A few examples:
-
-
-
-REFR\_HasKeywordHelper        -> 2196779
-
-
-
-WorkShopExtra\_RemoveItem     -> 4472849
-
-
-
-WorkShopExtra\_AddGridConnection -> 4472860
-
-
-
-Main\_OnQuestComplete         -> 2204940
-
-
-
-Main\_OnRadioAddStation       -> 2229305
-
-
-
-Actor\_Jump                   -> 2233155
-
-(See SUP\_AddressLib.h for the full list of mapped IDs.)
 
 
 
@@ -322,7 +280,7 @@ Original mod and code:
 
 
 
-Tomm (TommInfinite) — original SUP F4SE author
+Tomm (TommInfinite) — original SUP F4SE author https://www.nexusmods.com/profile/TommInfinite
 
 
 
@@ -330,11 +288,11 @@ Contributors to this NG update:
 
 
 
-Datanomicron — original contributor referenced
+Datanomicron — original contributor referenced https://github.com/Datanomicron/SUP-F4SE-NG
 
 
 
-jim\_t — human collaborator and maintainer of this fork
+jim\_t — human collaborator and maintainer of this fork https://github.com/jimt
 
 
 
@@ -377,42 +335,6 @@ Tomm. This fork is provided for compatibility and development purposes.
 Before publishing or redistributing:
 
 
-
-Verify the original project's license and comply with its terms.
-
-
-
-If the original project has no license, obtain permission from the original
-
-author before publishing publicly.
-
-
-
-Include attribution to the original author(s) in README and CONTRIBUTORS.
-
-
-
-Suggested repository files to include
-
-
-
-README.txt (this file)
-
-
-
-BUILD.md (exact build steps and CMake flags)
-
-
-
-CONTRIBUTORS (list of authors and maintainers)
-
-
-
-LICENSE (choose a license compatible with original work)
-
-
-
-.gitignore (exclude build artifacts: \*.obj, \*.lib, \*.dll, x64/Release, f4se/build, f4se/install)
 
 
 

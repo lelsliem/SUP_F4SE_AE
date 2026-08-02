@@ -1,48 +1,54 @@
-# Build outputs
-x64/
-Debug/
-Release/
+# Build directories
+build/
+cmake-build*/
+CMakeFiles/
+CMakeCache.txt
+*.cmake
+
+# MSVC / Visual Studio
 *.obj
+*.o
+*.pch
 *.pdb
-*.iobj
-*.ipdb
-*.exp
-*.lib
+*.idb
+*.ilk
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.user
+*.aps
+*.ncb
+*.opendb
+*.tlog
+
+# Compiled binaries
 *.dll
 *.exe
+*.lib
+*.exp
 
-# Visual Studio
-.vs/
-*.user
-*.suo
-*.ncb
-*.sdf
-*.opensdf
-*.VC.db
-*.VC.opendb
+# Fallout 4 / F4SE plugin artifacts
+Data/F4SE/Plugins/*.log
+Data/F4SE/Plugins/*.bin
+Data/F4SE/Plugins/*.txt
 
-# Build logs
+# Logs
 *.log
-*.tlog/
-build_output*.txt
 
-# Packages and uploads (keep source, not releases)
+# Archives
 *.zip
 *.7z
 *.rar
-NexusUpload/
-GitHubRelease/
-temp_*/
 
-# Temp and backup files
+# Temporary files
 *.tmp
 *.bak
-*.orig
-*~
+*.old
 
-# Python cache (from helper scripts)
-__pycache__/
-*.pyc
+# OS-specific
+Thumbs.db
+.DS_Store
 
-# Address Library database (users download separately)
-version-*.bin
+# IDE-specific
+.vscode/
+.idea/
