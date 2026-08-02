@@ -100,7 +100,7 @@ cmake -B f4se/build -S f4se `
 
 \&#x20; -DF4SE\\\_STATIC\\\_LIB=ON
 
-git clone http://github.com/thisSUPF4SE
+git clone http://github.com/thisSUPF4SE](https://github.com/lelsliem/SUP_F4SE_AE
 
 use SUP\\\_F4SE.sln right click solutions explorer>properties check paths in CC++ and linker under general are correct 
 
