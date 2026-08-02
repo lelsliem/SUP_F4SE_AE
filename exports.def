@@ -1,0 +1,14 @@
+LIBRARY	"SUP_F4SE"
+EXPORTS
+F4SEPlugin_Version
+F4SEPlugin_Load
+fn_ext_GETVERSION
+f_UpdateChecker_AddCachedPlugin
+f_UpdateChecker_GetInterfaceVer
+f_UpdateChecker_ShowMessage
+f_UpdateChecker_IsModLoaded
+f_UpdateChecker_GetGlobalVariable
+f_UpdateChecker_InitSUPDater
+f_UpdateChecker_GetForm
+fn_ext_SUPDateCheckerGetVersion
+fn_ext_IsSUPPatchActive

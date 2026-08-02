@@ -1,0 +1,48 @@
+# Build outputs
+x64/
+Debug/
+Release/
+*.obj
+*.pdb
+*.iobj
+*.ipdb
+*.exp
+*.lib
+*.dll
+*.exe
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.ncb
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+
+# Build logs
+*.log
+*.tlog/
+build_output*.txt
+
+# Packages and uploads (keep source, not releases)
+*.zip
+*.7z
+*.rar
+NexusUpload/
+GitHubRelease/
+temp_*/
+
+# Temp and backup files
+*.tmp
+*.bak
+*.orig
+*~
+
+# Python cache (from helper scripts)
+__pycache__/
+*.pyc
+
+# Address Library database (users download separately)
+version-*.bin

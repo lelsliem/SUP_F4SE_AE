@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}</ProjectGuid>
+    <RootNamespace>SUP_F4SE</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
+            Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')"
+            Label="LocalAppDataPlatform" />
+  </ImportGroup>
+
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
+            Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')"
+            Label="LocalAppDataPlatform" />
+  </ImportGroup>
+
+  <PropertyGroup Label="UserMacros" />
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetExt>.dll</TargetExt>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetExt>.dll</TargetExt>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;SUP_F4SE_EXPORTS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\SUP_F4SE\f4se;C:\SUP_F4SE\f4se\f4se;C:\SUP_F4SE\f4se\f4se_common;C:\SUP_F4SE\common\install\include;C:\SUP_F4SE\boost_1_84_0;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\SUP_F4SE\f4se\build\f4se\Release;C:\SUP_F4SE\f4se\build\f4se\f4se_common\Release;C:\SUP_F4SE\common\build\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>f4se_1_11_221.lib;f4se_common.lib;common.lib;wininet.lib;Version.lib;gdiplus.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;SUP_F4SE_EXPORTS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_HAS_STD_BYTE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\SUP_F4SE\f4se;C:\SUP_F4SE\f4se\f4se;C:\SUP_F4SE\f4se\f4se_common;C:\SUP_F4SE\common\install\include;C:\SUP_F4SE\boost_1_84_0;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <Optimization>MaxSpeed</Optimization>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\SUP_F4SE\f4se\build\f4se\Release;C:\SUP_F4SE\f4se\build\f4se\f4se_common\Release;C:\SUP_F4SE\common\build\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>f4se_1_11_221.lib;f4se_common.lib;common.lib;wininet.lib;Version.lib;gdiplus.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <ClCompile Include="inputbox_stub.cpp" />
+    <ClCompile Include="SUP_AddressLib.cpp" />
+    <ClCompile Include="SUP_F4SE.cpp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClInclude Include="Decoding.h" />
+    <ClInclude Include="inputbox.h" />
+    <ClInclude Include="InternalFunctions.h" />
+    <ClInclude Include="NanoTimer.h" />
+    <ClInclude Include="SUP_AddressLib.h" />
+    <ClInclude Include="Tomm_Addresses.h" />
+    <ClInclude Include="Tomm_BuildingBridges.h" />
+    <ClInclude Include="Tomm_ConsoleCommands.h" />
+    <ClInclude Include="Tomm_Events.h" />
+    <ClInclude Include="Tomm_EventScriptCaller.h" />
+    <ClInclude Include="Tomm_fn_BuildingBridges.h" />
+    <ClInclude Include="Tomm_fn_Cell.h" />
+    <ClInclude Include="Tomm_fn_Dialogue_Box.h" />
+    <ClInclude Include="Tomm_fn_Events.h" />
+    <ClInclude Include="Tomm_fn_Excel.h" />
+    <ClInclude Include="Tomm_fn_FileFunctions.h" />
+    <ClInclude Include="Tomm_fn_INI.h" />
+    <ClInclude Include="Tomm_fn_JSON.h" />
+    <ClInclude Include="Tomm_fn_Location.h" />
+    <ClInclude Include="Tomm_fn_MapMarker.h" />
+    <ClInclude Include="Tomm_fn_Math.h" />
+    <ClInclude Include="Tomm_fn_Misc.h" />
+    <ClInclude Include="Tomm_fn_ModLocalData.h" />
+    <ClInclude Include="Tomm_fn_MP3.h" />
+    <ClInclude Include="Tomm_fn_Nif.h" />
+    <ClInclude Include="Tomm_fn_ObjectReference.h" />
+    <ClInclude Include="Tomm_fn_Online.h" />
+    <ClInclude Include="Tomm_fn_PowerGrid.h" />
+    <ClInclude Include="Tomm_fn_Recipies.h" />
+    <ClInclude Include="Tomm_fn_Screenshots.h" />
+    <ClInclude Include="Tomm_fn_Steam.h" />
+    <ClInclude Include="Tomm_fn_Strings.h" />
+    <ClInclude Include="Tomm_fn_Utility.h" />
+    <ClInclude Include="Tomm_fn_XML.h" />
+    <ClInclude Include="Tomm_FunctionDeclarations.h" />
+    <ClInclude Include="Tomm_Gameloop.h" />
+    <ClInclude Include="Tomm_Hooks.h" />
+    <ClInclude Include="Tomm_INIProcessing.h" />
+    <ClInclude Include="Tomm_NativeEvents.h" />
+    <ClInclude Include="Tomm_PexFileSHA1.h" />
+    <ClInclude Include="Tomm_RegisterFunctions.h" />
+    <ClInclude Include="Tomm_Serialization.h" />
+    <ClInclude Include="Tomm_SteamAPI.h" />
+    <ClInclude Include="Tomm_SUPDater_Funcs.h" />
+    <ClInclude Include="Tomm_SUPPastebinReader.h" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="exports.def" />
+  </ItemGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

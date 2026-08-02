@@ -1,0 +1,243 @@
+=============================================================================
+SUP F4SE - Script Utilities Plus for Fallout 4 Next Generation
+Version 0.77 (F4SE 0.7.7 Compatible)
+=============================================================================
+
+A Claude Code AI Project
+Updated for Fallout 4 Next Generation / Anniversary Edition (v1.11.191)
+
+=============================================================================
+ABOUT THIS UPDATE
+=============================================================================
+
+This Next Generation update of SUP F4SE was created through a collaboration
+between the original mod author Tomm and Claude (Anthropic's AI assistant)
+using Claude Code CLI.
+
+The primary challenge was updating all hardcoded memory addresses to work
+with the new Fallout 4 executable, which required:
+
+  - Implementing Address Library integration for version-independent addressing
+  - Reverse-engineering and mapping 35+ function addresses to their new
+    Address Library IDs for the NG database
+  - Creating a robust address resolution system that loads offsets at runtime
+  - Extensive testing and iteration to resolve crashes and compatibility issues
+
+PROJECT STATISTICS:
+  - Estimated tokens used: ~500,000+ across multiple sessions
+  - Development time: ~8-10 hours of active Claude Code sessions
+  - Lines of code analyzed/modified: 27,786 lines across 55 source files
+  - Address Library IDs mapped: 35 game functions
+
+=============================================================================
+REQUIREMENTS
+=============================================================================
+
+REQUIRED:
+  - Fallout 4 Next Generation (v1.10.980+) or Anniversary Edition (v1.11.x)
+  - F4SE (Fallout 4 Script Extender) version 0.7.7
+    https://f4se.silverlock.org/
+  - Address Library for F4SE Plugins (NG version)
+    https://www.nexusmods.com/fallout4/mods/47327
+
+COMPATIBLE WITH:
+  - Fallout 4 v1.11.191 (tested and verified)
+  - F4SE 0.7.7 (build for runtime 1.11.191)
+
+=============================================================================
+FEATURES
+=============================================================================
+
+SUP F4SE adds 500+ new Papyrus script functions including:
+
+  - File I/O operations (read/write text files)
+  - JSON parsing and manipulation
+  - XML processing
+  - Excel/spreadsheet support
+  - INI file handling
+  - Workshop/Power Grid utilities
+  - Map marker functions
+  - Quest event hooks
+  - Actor state functions
+  - String manipulation
+  - Math utilities
+  - Screenshot capture
+  - And much more...
+
+=============================================================================
+INSTALLATION
+=============================================================================
+
+Using Vortex/Mod Manager:
+  1. Install F4SE 0.7.7 manually (copy files to Fallout 4 folder)
+  2. Install "Address Library for F4SE Plugins" from Nexus
+  3. Install this mod using your mod manager
+  4. Launch game using f4se_loader.exe
+
+Manual Installation:
+  1. Extract SUP_F4SE.dll to:
+     <Fallout 4>\Data\F4SE\Plugins\SUP_F4SE.dll
+  2. Ensure you have the Address Library database file:
+     <Fallout 4>\Data\F4SE\Plugins\version-1-11-191-0.bin
+
+=============================================================================
+SOURCE FILES USED IN THIS UPDATE
+=============================================================================
+
+Core Files (Created/Modified for NG Update):
+  - SUP_AddressLib.h      - Address Library integration header
+  - SUP_AddressLib.cpp    - Address Library database loader and resolver
+  - SUP_F4SE.cpp          - Main plugin entry point (updated initialization)
+  - F4SE_Compat.h         - F4SE compatibility layer
+
+Original SUP F4SE Source Files (by Tomm):
+  - Tomm_Addresses.h           - Original hardcoded addresses (deprecated)
+  - Tomm_Hooks.h               - Function hooks
+  - Tomm_Events.h              - Event system
+  - Tomm_RegisterFunctions.h   - Papyrus function registration
+  - Tomm_fn_*.h (20 files)     - Function implementations:
+      * Tomm_fn_BuildingBridges.h
+      * Tomm_fn_Cell.h
+      * Tomm_fn_Dialogue_Box.h
+      * Tomm_fn_Events.h
+      * Tomm_fn_Excel.h
+      * Tomm_fn_FileFunctions.h
+      * Tomm_fn_INI.h
+      * Tomm_fn_JSON.h
+      * Tomm_fn_Location.h
+      * Tomm_fn_MapMarker.h
+      * Tomm_fn_Math.h
+      * Tomm_fn_Misc.h
+      * Tomm_fn_ModLocalData.h
+      * Tomm_fn_MP3.h
+      * Tomm_fn_Nif.h
+      * Tomm_fn_ObjectReference.h
+      * Tomm_fn_Online.h
+      * Tomm_fn_PowerGrid.h
+      * Tomm_fn_Recipies.h
+      * Tomm_fn_Screenshots.h
+      * Tomm_fn_Steam.h
+      * Tomm_fn_Strings.h
+      * Tomm_fn_Utility.h
+      * Tomm_fn_XML.h
+
+Third-Party Libraries:
+  - json.hpp              - nlohmann JSON library
+  - SimpleIni.h           - INI file parser
+  - OpenXLSX.hpp          - Excel file support
+  - MinHook.h             - Function hooking library
+  - sha1.hpp              - SHA1 hashing
+  - xml2json.hpp          - XML to JSON converter
+
+Build System:
+  - SUP_F4SE.vcxproj      - Visual Studio 2022 project
+  - SUP_F4SE.sln          - Solution file
+  - build.bat             - Build script
+  - package_mod.bat       - Packaging script
+
+=============================================================================
+ADDRESS LIBRARY IDS MAPPED
+=============================================================================
+
+The following game functions were mapped to Address Library IDs:
+
+Workshop/Power Grid Functions:
+  - REFR_HasKeywordHelper         (ID: 2196779)
+  - WorkShopExtra_RemoveItem      (ID: 4472849)
+  - WorkShopExtra_AddGridConnection    (ID: 4472860)
+  - WorkShopExtra_RemoveGridConnection (ID: 4472871)
+  - WorkShopExtra_AreDirectlyConnected (ID: 4472881)
+  - WorkShopExtra_CalculateCapacityAndLoad (ID: 4475969)
+  - WorkShopExtra_GetPowerGridForTarget    (ID: 4472882)
+  - WorkShopExtra_CleanUpEmptyPowerGrids   (ID: 4472898)
+  - WorkShop_DeleteWorkshopItem   (ID: 4808450)
+  - WorkShop_DisconnectSpline     (ID: 4473497)
+  - Workshop_ItemInterruptsPower  (ID: 4473103)
+  - Workshop_ItemIsWirelessPowerReceiver (ID: 4473100)
+  - Workshop_IsWithinRadiatorRange (ID: 4473543)
+
+Quest Functions:
+  - Main_OnQuestComplete          (ID: 2204940)
+  - Main_OnQuestActive            (ID: 2204942)
+  - Main_OnQuestFailed            (ID: 2204935)
+
+Radio Functions:
+  - Main_OnRadioAddStation        (ID: 2229305)
+  - Main_OnPlayerRadioState       (ID: 2230851)
+  - Main_GetRadioStationName      (ID: 2230850)
+
+Actor Functions:
+  - Actor_Jump                    (ID: 2233155)
+  - Actor_IsInAir                 (ID: 2233999)
+  - Actor_IsDead                  (ID: 2233624)
+  - Actor_CanBeKnockedDown        (ID: 2233626)
+  - Main_GetActorByHandle         (ID: 2168321)
+
+Console/Script Functions:
+  - Main_OnConsoleCommand         (ID: 4814165)
+  - Main_OnCompileScript          (ID: 2200532)
+
+Map/Cell Functions:
+  - Main_OnSePlayerMarker         (ID: 2238349)
+  - Main_UpdateSeenDataForPlayerLoc (ID: 2195601)
+  - Main_OnSetWantsDelete         (ID: 2196766)
+
+Combat Functions:
+  - Main_OnKnockExplosion         (ID: 2237514)
+  - Main_OnGetUpFromKnock         (ID: 2232921)
+  - Main_OnApplyDismemberment     (ID: 2191382)
+
+Utility Functions:
+  - Main_GetFormByEditorID        (ID: 2179550)
+  - Main_GetTerminalLinkKeyword   (ID: 4473787)
+  - TaskInterface_ProcessWorkshopSwitchEvent (ID: 2232980)
+
+=============================================================================
+KNOWN LIMITATIONS (NG VERSION)
+=============================================================================
+
+Some features are disabled in the NG version due to address changes:
+  - Gameloop hook (address not found in NG database)
+  - OnRemovePlayerMapMarker (address not found)
+  - Crosshair handler (NG compatibility)
+  - Time multiplier access (address not found)
+
+These features may be restored in future updates if the addresses are located.
+
+=============================================================================
+CREDITS
+=============================================================================
+
+Original SUP F4SE Mod:
+  - Tomm (https://www.nexusmods.com/fallout4/mods/17295)
+
+Next Generation Update:
+  - Claude (Anthropic AI) via Claude Code CLI
+  - Human collaborator: jim_t
+
+Dependencies:
+  - F4SE Team (https://f4se.silverlock.org/)
+  - meh321 - Address Library for F4SE Plugins
+  - nlohmann - JSON for Modern C++
+  - Tsuda Kageyu - MinHook
+
+=============================================================================
+CHANGELOG
+=============================================================================
+
+Version 0.77 (Next Generation Update) - December 2025
+  - Complete rewrite of address resolution using Address Library
+  - Added SUP_AddressLib.h/cpp for runtime address lookup
+  - Mapped 35 game functions to Address Library IDs
+  - Removed hardcoded addresses (Tomm_Addresses.h deprecated)
+  - Fixed compatibility with F4SE 0.7.7 and Fallout 4 v1.11.191
+  - Disabled features requiring unresolved addresses (graceful fallback)
+
+=============================================================================
+LICENSE
+=============================================================================
+
+This mod is provided as-is. The original SUP F4SE is created by Tomm.
+The Next Generation update modifications may be freely used and modified.
+
+=============================================================================
