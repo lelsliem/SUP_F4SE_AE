@@ -61,8 +61,13 @@ cosave, and third-party settlement mods like NISTRON Smart Home):
   did).
 - **Crash handler** is hardened: it writes `SUP_Crash_<pid>.dmp`/`.txt`, skips
   dumps for the known benign vanilla launch crash (a null-read in
-  `Fallout4.exe` that also happens with SUP uninstalled), and skips dumps for
-  faults inside SUP's own SEH-guarded regions. Clean sessions leave zero dumps.
+  `Fallout4.exe` that also happens with SUP uninstalled), skips dumps for
+  faults inside SUP's own SEH-guarded regions, and skips dumps for handled
+  access violations inside `ENBHelperF4.dll` (ENB's proxy calls that plugin's
+  exports with a mismatched prototype and poisoned output pointers; its own
+  SEH guards catch them — cross-module guards our thread-local can't see, so
+  the handler matches the fault signature instead). Clean sessions leave zero
+  dumps.
 - **Previously-broken features on real addresses**: `TimeMultiplier`
   (`RE::BSTimer`), the actor knock-down check (`ActorState::knockState`), and
   cross-cell `MoveRefrToPosition` (`MoveRefToNewSpace`).
@@ -108,7 +113,10 @@ list:
 - The `Iter` macro family (740+ uses) is kept as-is — flagged, but stable.
 - Some original SUP functions simply have no valid address or modern
   equivalent on 1.11.221; they were removed rather than shipped broken.
-- The console banner still prints a stale legacy version string (cosmetic).
+- The console banner prints the legacy `iVersion`-derived string
+  (`SUP F4SE V.11.70`) rather than the DLL's own version — cosmetic only; the
+  game-formatter float bug that made it print `v0.00` is fixed in the
+  `Console_Print` shim.
 - Only F4SE 0.7.8 / runtime 1.11.221 is targeted. Older runtimes are not
   supported by this build.
 

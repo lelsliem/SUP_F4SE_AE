@@ -280,9 +280,8 @@ void f_SUP_ONDefferedInit()
 	float fVersion = iVersion * 0.01;
 	Console_Print("SUP F4SE V.%0.2lf", fVersion);
 
-	BSFixedString MenuName("Console");
-	g_uiMessageManager->SendUIMessageImpl(MenuName, kMessage_Open);
-	g_uiMessageManager->SendUIMessageImpl(MenuName, kMessage_Close);
+	// No console open/close poke here anymore: the legacy code flashed the console
+	// open and shut on game load, which visibly popped it on the main menu.
 
 	g_ObjHandlerPolicy = g_MyVirtMachine->GetHandlePolicy(); //permanent address
 		
