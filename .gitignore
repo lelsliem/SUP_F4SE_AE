@@ -1,0 +1,23 @@
+# Build artifacts
+build/
+.xmake/
+*.zip
+Package/
+
+# CommonLibF4 builds into its own vendored dir when compiled
+Depends/commonlibf4-*/build/
+Depends/commonlib-shared-*/build/
+
+# Tool binaries (source is committed; the built exe/obj is not)
+tools/symresolve.exe
+tools/*.obj
+
+# Editor / OS junk
+.vs/
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+
+# Freebuff client workspace (local only)
+.freebuff/

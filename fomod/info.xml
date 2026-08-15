@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fomod>
+    <Name>SUP F4SE - Script Utilities Plus</Name>
+    <Author>Tomm</Author>
+    <Version>0.7.7</Version>
+    <Website>https://www.nexusmods.com/fallout4/mods/17295</Website>
+    <Description>Script Utilities Plus for F4SE - Extends Papyrus scripting with 500+ new functions for file I/O, JSON, XML, Excel, workshop utilities, and more. Compatible with F4SE 0.7.7 and Fallout 4 Next Generation / Anniversary Edition.</Description>
+    <Groups>
+        <element>F4SE Plugins</element>
+        <element>Scripting</element>
+        <element>Utilities</element>
+    </Groups>
+</fomod>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
+    <moduleName>SUP F4SE - Script Utilities Plus</moduleName>
+    <requiredInstallFiles>
+        <folder source="Data" destination=""/>
+    </requiredInstallFiles>
+    <installSteps order="Explicit">
+        <installStep name="Installation">
+            <optionalFileGroups order="Explicit">
+                <group name="SUP F4SE" type="SelectExactlyOne">
+                    <plugins order="Explicit">
+                        <plugin name="SUP F4SE Plugin">
+                            <description>Installs the SUP F4SE plugin which adds 500+ Papyrus script functions.
+
+Requirements:
+- F4SE 0.7.7 or later
+- Address Library for F4SE Plugins
+- Fallout 4 Next Generation (1.10.980+) or Anniversary Edition (1.11.x)</description>
+                            <files>
+                                <folder source="Data" destination="" priority="0"/>
+                            </files>
+                            <typeDescriptor>
+                                <type name="Required"/>
+                            </typeDescriptor>
+                        </plugin>
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
+    </installSteps>
+</config>
