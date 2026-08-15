@@ -71,6 +71,42 @@ namespace
 		return rva == 0x4CAF53;
 	}
 
+	// ENBHelperF4's exported getters are SEH-guarded on the write side: ENB's
+	// d3d11 proxy calls them with a mismatched prototype and passes garbage output
+	// pointers (observed value: -1), and each guarded write swallows the fault.
+	// Those guards live in another module, so sup::crash::g_SehGuardDepth (a
+	// per-module thread-local) can't see them, and the VEH would dump a false
+	// alarm on every ENB call. Skip dumps when the fault is an access violation
+	// inside ENBHelperF4.dll whose target is not a plausible user pointer — that
+	// is the handled-fault signature, not a crash.
+	bool IsEnbHelperHandledFault(const EXCEPTION_RECORD* a_rec, const void* a_addr) noexcept
+	{
+		if (a_rec->ExceptionCode != EXCEPTION_ACCESS_VIOLATION || a_rec->NumberParameters < 2) {
+			return false;
+		}
+
+		const std::uintptr_t target = a_rec->ExceptionInformation[1];
+		const bool implausible = target < 0x10000 || target >= 0x0000800000000000ull;
+		if (!implausible) {
+			return false;
+		}
+
+		HMODULE mod = nullptr;
+		if (!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+				GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+				static_cast<LPCWSTR>(a_addr), &mod) ||
+			!mod) {
+			return false;
+		}
+
+		wchar_t full[MAX_PATH] = {};
+		if (!GetModuleFileNameW(mod, full, MAX_PATH))
+			return false;
+		const wchar_t* name = wcsrchr(full, L'\\');
+		name = name ? name + 1 : full;
+		return _wcsicmp(name, L"ENBHelperF4.dll") == 0;
+	}
+
 	// Name of the module that owns a faulting address, or L"?" if it can't be
 	// resolved. Best-effort — never fatal if the loader is already damaged.
 	void FaultingModuleName(const void* a_addr, wchar_t (&a_out)[MAX_PATH]) noexcept
@@ -140,6 +176,11 @@ namespace
 			return EXCEPTION_CONTINUE_SEARCH;
 
 		if (IsBenignVanillaCrash(a_exc->ExceptionRecord, a_exc->ExceptionRecord->ExceptionAddress))
+			return EXCEPTION_CONTINUE_SEARCH;
+
+		// Handled faults inside another plugin's SEH guards (ENBHelperF4): our
+		// thread-local can't see cross-module guards, so match the signature.
+		if (IsEnbHelperHandledFault(a_exc->ExceptionRecord, a_exc->ExceptionRecord->ExceptionAddress))
 			return EXCEPTION_CONTINUE_SEARCH;
 
 		// The fault is inside an SEH-guarded region (fn_IsSnappedConnectionLoop,
