@@ -20,7 +20,7 @@ if os.host() == "windows" then
     set_config("plat", "windows")
 end
 
-set_version("0.7.7")
+set_version("0.7.8")
 
 set_languages("c++23")
 set_encodings("utf-8")
@@ -46,7 +46,7 @@ target("SUP_F4SE", function()
         name        = "SUP F4SE",
         author      = "SUP",
         description = "SUP F4SE - Papyrus function library and settlement tools",
-        version     = "0.7.7",
+        version     = "0.7.8",
     })
 
     add_files("src/main.cpp")
@@ -119,7 +119,7 @@ task("package_mod", function()
 
         -- Emit a Vortex-ready zip of the Package folder.
         local archive = import("utils.archive")
-        local zip = path.join(projectdir, "SUP_F4SE_v" .. (project.version() or "0.7.7") .. ".zip")
+        local zip = path.join(projectdir, "SUP_F4SE_v" .. (project.version() or "0.7.8") .. ".zip")
         os.tryrm(zip)
         local olddir = os.cd(pkg)
         local zfiles = os.files("**")

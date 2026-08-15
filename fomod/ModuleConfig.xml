@@ -13,7 +13,7 @@
                             <description>Installs the SUP F4SE plugin which adds 500+ Papyrus script functions.
 
 Requirements:
-- F4SE 0.7.7 or later
+- F4SE 0.7.8 or later
 - Address Library for F4SE Plugins
 - Fallout 4 Next Generation (1.10.980+) or Anniversary Edition (1.11.x)</description>
                             <files>

@@ -48,6 +48,6 @@ F4SE_PLUGIN_LOAD(const F4SE::LoadInterface* a_f4se)
 		return false;
 	}
 
-	REX::INFO("SUP F4SE loaded (v0.7.7)");
+	REX::INFO("SUP F4SE loaded (v0.7.8)");
 	return true;
 }
