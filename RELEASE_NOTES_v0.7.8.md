@@ -33,8 +33,8 @@ Install with your mod manager (fomod included) or extract `Data\` into your game
 
 ## Checksums
 
-- Zip: `7f3438321b54759f008102f2868ecaece59b827b5055530dd9022937adb2f15a`
-- DLL: `0cb1e512c46395f63294b6f0f74cf773f581bb1888e6e47e2e24aa0963f518ee`
+- Zip: `444119089a8f216a4f7ad71bda5c555dc9e140a268b374c346eb4eb2cbec0d2e`
+- DLL: `bee58b63a524f168d1148c7a5c9e6400971eb4916bdb962712a0bdcf48a40027`
 - PEX: `ee2ea112c3662457d34e25a43e74acbbb4babbcb` (blessed, matches the DLL's expected hash)
 
 ## Credits

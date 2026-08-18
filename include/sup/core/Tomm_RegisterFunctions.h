@@ -35,8 +35,6 @@ bool RegisterFuncs(VirtualMachine* vm) {
 	vm->RegisterFunction(new NativeFunction1<StaticFunctionTag, UInt32, BSFixedString>("StringGetLength", pluginName, cmd_StringGetLength, vm));
 	vm->RegisterFunction(new NativeFunction2<StaticFunctionTag, bool, BSFixedString, BSFixedString>("StringContains", pluginName, cmd_StringContains, vm));
 	vm->RegisterFunction(new NativeFunction3<StaticFunctionTag, BSFixedString, BSFixedString, BSFixedString, UInt32>("StringInsert", pluginName, cmd_StringInsert, vm));
-	vm->RegisterFunction(new NativeFunction1<StaticFunctionTag, float, BSFixedString>("StringToFloat", pluginName, cmd_StringToFloat, vm));
-	vm->RegisterFunction(new NativeFunction1<StaticFunctionTag, UInt32, BSFixedString>("StringToInt", pluginName, cmd_StringToInt, vm));
 	vm->RegisterFunction(new NativeFunction1<StaticFunctionTag, UInt32, BSFixedString>("FileGetLinesCount", pluginName, cmd_FileGetLinesCount, vm));
 	vm->RegisterFunction(new NativeFunction3<StaticFunctionTag, BSFixedString, BSFixedString, UInt32, UInt32>("ReadStringFromFile", pluginName, cmd_ReadStringFromFile, vm));
 	vm->RegisterFunction(new NativeFunction2<StaticFunctionTag, VMArray<BSFixedString>, BSFixedString, UInt32>("FileGetFileTime", pluginName, cmd_FileGetFileTime, vm));
@@ -64,7 +62,6 @@ bool RegisterFuncs(VirtualMachine* vm) {
 	vm->RegisterFunction(new NativeFunction6<StaticFunctionTag, float, float, float, float, float, float, float>("GetDistanceBetweenPoints", pluginName, cmd_GetDistanceBetweenPoints, vm));
 	vm->RegisterFunction(new NativeFunction4<StaticFunctionTag, float, TESObjectREFR*, float, float, float>("GetHeadingAngleAlt", pluginName, cmd_GetHeadingAngleAlt, vm));
 	vm->RegisterFunction(new NativeFunction5<StaticFunctionTag, float, float, float, float, float, float>("GetHeadingAngleBetweenPoints", pluginName, cmd_GetHeadingAngleBetweenPoints, vm));
-	vm->RegisterFunction(new NativeFunction1<StaticFunctionTag, BSFixedString, BSFixedString>("StringToUpper", pluginName, cmd_StringToUpper, vm));
 
 	//V 2.00
 	vm->RegisterFunction(new NativeFunction2<StaticFunctionTag, void, BSFixedString, UInt32>("DebugPrintSUP", pluginName, cmd_DebugPrintSUP, vm));
