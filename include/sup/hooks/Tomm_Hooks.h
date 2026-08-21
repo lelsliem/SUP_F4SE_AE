@@ -607,6 +607,85 @@ typedef void(__fastcall* OnProcessWorkshopSwitchEvent)(void* me, TESObjectREFR* 
 RelocAddr <OnProcessWorkshopSwitchEvent> OnProcessWorkshopSwitchEvent_Hook(0xD5F310);
 OnProcessWorkshopSwitchEvent OnProcessWorkshopSwitchEvent_Original = NULL;
 
+// Workshop reference event dispatch (the lights/wireless trigger).
+//
+// Tommy's original hooked 0x1F44D0 (1.10.163, old AL ID 939220). The NG rewrite renumbered
+// every ID, so that anchor is gone. Disassembly of the 1.11.240 exe shows the event flows:
+//   WorkshopReferenceEventSink::HandleEvent (vtable slot[1] = 0x37CE00, ID 2194871) reads the
+//   event struct (source ref at +0x00, flag byte at +0x10), looks up the workshop via the
+//   source ref's extraList, then dispatches to this inner processor with clean args:
+//     rcx = manager, rdx = workshopRef, r8 = sourceRef, r9b = flag byte
+// So (workshop, source) arrive exactly as Tommy's 2-arg hook expected them. Verified in both
+// the canon 1.11.240 DB (0xC4C280) and the 1.11.221 DB (0xC4BEF0) -> multi-version safe.
+typedef void(__fastcall* OnWorkshopHandleReferenceEvent)(void* Manager, TESObjectREFR* WorkshopRef, TESObjectREFR* SourceRef, UInt8 Flag);
+RelocAddr <OnWorkshopHandleReferenceEvent> OnWorkshopHandleReferenceEvent_Hook(REL::ID(2229304));
+OnWorkshopHandleReferenceEvent OnWorkshopHandleReferenceEvent_Original = NULL;
+
+void OnWorkshopHandleReferenceEvent_MyHook(void* Manager, TESObjectREFR* WorkshopRef, TESObjectREFR* SourceRef, UInt8 Flag)
+{
+	// Entry logging: this is the ONLY way to know whether the workshop reference event
+	// dispatcher (REL::ID 2229304 -> 0xC4C280) actually fires on a NISTRON light toggle.
+	_DMESSAGE("OnWorkshopHandleReferenceEvent fires>> WorkshopRef>>%x, SourceRef>>%x, Flag>>%d",
+		WorkshopRef ? WorkshopRef->formID : 0, SourceRef ? SourceRef->formID : 0, Flag);
+
+	// Re-entrancy guard: ConnectToRadiator / RemoveConnection inside the fix may itself fire
+	// another workshop reference event; without this the hook would recurse.
+	static bool bInside = false;
+	if (bInside) {
+		return;
+	}
+
+	// IMPORTANT (2026-08-21): 0xC4C280 is a POST-CHANGE notification fan-out — by the time
+	// this hook runs, the game already applied the power change (single caller 0x37CE00 = the
+	// ReferenceEventSink's HandleEvent, which forwards the event struct: source at +0x00,
+	// flag byte at +0x10). So the old before/after diff engine (GetWorkShopStatus + compare)
+	// could NEVER see a change: snapshot == post-change state. The Flag byte IS the direction:
+	// Flag=1 the source just got powered ON, Flag=0 it just got powered OFF (matches the log
+	// alternating 0/1 on every NISTRON light toggle). Drive the radiator fix directly from it.
+	if (bWirelessPowerFix && WorkshopRef && SourceRef) {
+		bInside = true;
+
+		Workshop::ExtraData* WorkshopExtraData = f_GetPowerGridExtraData(WorkshopRef);
+		if (WorkshopExtraData) {
+			// The game's own handler already ran (notification). Still call the original so
+			// other registered sinks (NetLink LinkLayer etc.) receive the event.
+			if (OnWorkshopHandleReferenceEvent_Original) {
+				OnWorkshopHandleReferenceEvent_Original(Manager, WorkshopRef, SourceRef, Flag);
+			}
+
+			// Flag-driven wireless fix: the event source's power state just changed to Flag.
+			// RadiatorFixProcessPowerOnOffEvent self-guards on the radiation AV (only real
+			// radiators act), so this is safe for lights/receivers too — for a radiator it
+			// connects all in-range receivers on power-on / disconnects them on power-off.
+			if (Flag != 0) {
+				_DMESSAGE("Reference event Flag=ON, radiator fix for source>>%x", SourceRef->formID);
+				RadiatorFixProcessPowerOnOffEvent(true, SourceRef, WorkshopRef, WorkshopExtraData);
+			} else {
+				_DMESSAGE("Reference event Flag=OFF, radiator fix for source>>%x", SourceRef->formID);
+				RadiatorFixProcessPowerOnOffEvent(false, SourceRef, WorkshopRef, WorkshopExtraData);
+			}
+
+			// Also fire the SUP power-state-change event so NetLink/NISTRON scripts that
+			// registered for it get notified of the reference event (Tommy's OnWorkshopPowerStateChange).
+			if (OnWorkshopPowerStateChangeEventHandler.HasEvents()) {
+				PowerGridChanges changes;
+				changes.bChanged = true;
+				OnWorkshopPowerStateChangeEventHandler.ProcessEventOnWorkshopPowerStateChange(SourceRef, WorkshopRef, changes, 3, nullptr, nullptr, nullptr);
+			}
+		} else {
+			if (OnWorkshopHandleReferenceEvent_Original) {
+				OnWorkshopHandleReferenceEvent_Original(Manager, WorkshopRef, SourceRef, Flag);
+			}
+		}
+
+		bInside = false;
+	} else {
+		if (OnWorkshopHandleReferenceEvent_Original) {
+			OnWorkshopHandleReferenceEvent_Original(Manager, WorkshopRef, SourceRef, Flag);
+		}
+	}
+}
+
 
 
 
@@ -1132,23 +1211,18 @@ void OnConnectToRadiator_MyHook( TESObjectREFR* GeneratorRef, TESObjectREFR* Ref
 
 
 
-	//auto WirelessConnections = GetConnectionsForRadiator(WorkshopData, GeneratorRef);
-
-	//TESObjectREFR* RefC = NULL;
-
-
+	// DISABLED (2026-08-21): this removal loop was re-enabled from Tommy's source but
+	// it is DESTRUCTIVE. The log proved it: ConnectToRadiator fires on EVERY grid event
+	// (12+ times per session), and each invocation removed a live wireless connection
+	// right after the game established it — "device loses power and can't turn back on
+	// until moved". Tommy's original had this loop commented out (with a helper name
+	// that never existed), so this hook now matches his shipped behavior: log + call
+	// the original only. Wireless connect/disconnect is handled by
+	// RadiatorFixProcessPowerOnOffEvent, driven from the reference-event hook's Flag.
 
 	OnConnectToRadiator_Original(GeneratorRef, RefB, WorkshopData);
 
-
 	OutputPowerGridHelper(WorkshopData);
-	//for (auto it = WirelessConnections.begin(); it != WirelessConnections.end(); it++)
-	//{
-	//	_DMESSAGE("Removing wireless connection, Generator>>%x,Receiver>>%x", Iter.Connection1->formID, Iter.Connection2->formID);
-	//	sup::compat::RemoveConnection(WorkshopData, Iter.Connection1, Iter.Connection2, RefC, false);
-	//	_DMESSAGE("removed");
-	//	Console_Print("Removing wireless connection, Generator>>%x,Receiver>>%x", Iter.Connection1->formID, Iter.Connection2->formID);
-	//}
 
 	_DMESSAGE("OnConnectToRadiator finishes");
 	Console_Print("OnConnectToRadiator finishes");
@@ -1265,11 +1339,13 @@ void f_InitHooks()
 	// DISABLED: 0xC4C010 reads 4 args (rcx/rdx/r8/r9b) but the typedef declares 2 (void*,float).
 	//SetHookSUP(OnRadioAddStation_Hook, &OnRadioAddStation_MyHook, reinterpret_cast<LPVOID*>(&OnRadioAddStation_Original), "OnRadioAdd");
 
-	// Quest event dispatch cluster: sequential IDs 2204935/2204940/2204942 -> 0x5D66D0/0x5D69F0/0x5D6AA0
-	// (adjacent big-stack-frame functions).
-	SetHookSUP(OnQuestActive_Hook, &OnQuestActive_MyHook, reinterpret_cast<LPVOID*>(&OnQuestActive_Original), "OnQuestActive");
-	SetHookSUP(OnQuestCompleted_Hook, &OnQuestCompleted_MyHook, reinterpret_cast<LPVOID*>(&OnQuestCompleted_Original), "OnQuestCompleted");
-	SetHookSUP(OnQuestFailed_Hook, &OnQuestFailed_MyHook, reinterpret_cast<LPVOID*>(&OnQuestFailed_Original), "OnQuestFailed");
+	// DISABLED: Quest event dispatch cluster (IDs 2204935/2204940/2204942 -> 0x5D66D0/0x5D69F0/0x5D6AA0)
+	// is signature-mismatched — the real functions consume r8/r9 + stack args (4-6 args) while
+	// the 2-arg (TESQuest*, bool) typedefs declare 2. Same latent-CTD class as OnCompileScript;
+	// quest events fire rarely so it never crashed in testing, but any quest completion/fail would.
+	//SetHookSUP(OnQuestActive_Hook, &OnQuestActive_MyHook, reinterpret_cast<LPVOID*>(&OnQuestActive_Original), "OnQuestActive");
+	//SetHookSUP(OnQuestCompleted_Hook, &OnQuestCompleted_MyHook, reinterpret_cast<LPVOID*>(&OnQuestCompleted_Original), "OnQuestCompleted");
+	//SetHookSUP(OnQuestFailed_Hook, &OnQuestFailed_MyHook, reinterpret_cast<LPVOID*>(&OnQuestFailed_Original), "OnQuestFailed");
 	// DISABLED: ID 4814165 -> 0x125B572 is a `FF 25` indirect-jump thunk, not a function.
 	//SetHookSUP(OnConsoleCommand_Hook, &OnConsoleCommand_MyHook, reinterpret_cast<LPVOID*>(&OnConsoleCommand_Original), "OnConsoleCommand");
 	// DISABLED: 0x4E2A30 iterates a container via only rcx (1 arg), typedef declares 5 args.
@@ -1278,7 +1354,10 @@ void f_InitHooks()
 	//SetHookSUP(OnSetPlayerMapMarker_Hook, &OnSetPlayerMapMarker_MyHook, reinterpret_cast<LPVOID*>(&OnSetPlayerMapMarker_Original), "OnSetPlayerMapMarker");
 	// DISABLED: no ID (same address as OnSetPlayerMapMarker in the old DB).
 	//SetHookSUP(OnRemovePlayerMapMarker_Hook, &OnRemovePlayerMapMarker_MyHook, reinterpret_cast<LPVOID*>(&OnRemovePlayerMapMarker_Original), "OnRemovePlayerMapMarker");
-	SetHookSUP(OnKnockExplosion_Hook, &OnKnockExplosion_MyHook, reinterpret_cast<LPVOID*>(&OnKnockExplosion_Original), "OnKnockExplosion");
+	// DISABLED: OnKnockExplosion ID resolves to a pointer-returning factory (new of 0xE8), not
+	// Tommy's bool(void*,Actor*,NiPoint3*,float). Calling the "original" with the wrong return
+	// convention corrupts the stack — latent CTD class.
+	//SetHookSUP(OnKnockExplosion_Hook, &OnKnockExplosion_MyHook, reinterpret_cast<LPVOID*>(&OnKnockExplosion_Original), "OnKnockExplosion");
 	// DISABLED: 0xCC1DF0 is a lock-guarded container op (identical body to 0x3C1180 above).
 	//SetHookSUP(OnPlayerRadioState_Hook, &OnPlayerRadioState_MyHook, reinterpret_cast<LPVOID*>(&OnPlayerRadioState_Original), "OnPlayerRadioState");
 	// DISABLED: 0xD5A0D0 reads a global + vector math; 2nd arg (Actor*) unused in the prologue.
@@ -1299,8 +1378,11 @@ void f_InitHooks()
 	SetHookSUP(OnRemoveGridConnection_Hook, &OnRemoveGridConnection_MyHook, reinterpret_cast<LPVOID*>(&OnRemoveGridConnection_Original), "OnRemoveGridConnection");
 	SetHookSUP(OnConnectToRadiator_Hook, &OnConnectToRadiator_MyHook, reinterpret_cast<LPVOID*>(&OnConnectToRadiator_Original), "OnConnectToRadiator");
 
-	
-	
+	// Workshop reference event dispatch (the lights/wireless trigger). REL::ID 2229304
+	// -> 0xC4C280 (1.11.240) / 0xC4BEF0 (1.11.221), verified in both DBs. This restores
+	// Tommy's original OnWorkshopHandleReferenceEvent (old 1.10.163 anchor 0x1F44D0).
+	SetHookSUP(OnWorkshopHandleReferenceEvent_Hook, &OnWorkshopHandleReferenceEvent_MyHook, reinterpret_cast<LPVOID*>(&OnWorkshopHandleReferenceEvent_Original), "OnWorkshopHandleReferenceEvent");
+
 	//SetHookSUP(UpdateMovingWirelessItem1, &_UpdateMovingWirelessItem1_MyHook, reinterpret_cast<LPVOID*>(&OnUpdateMovingWirelessItem1_Original), "UpdateMovingWirelessItem1");
 
 

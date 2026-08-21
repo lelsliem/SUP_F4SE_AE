@@ -98,6 +98,8 @@ bool bDebugMode = false;
 bool bSkipPexCheck = false;
 bool bScrapCrashFix = true;
 bool bTermLinkFix = true;
+bool bWirelessPowerFix = true;
+bool bDisableAllHooks = false;
 
 bool bEditorIDPatchLoaded = false;
 
@@ -348,10 +350,6 @@ void f_SUP_ONDefferedInit()
 	if (auto* source = RE::TESActivateEvent::GetEventSource()) {
 		source->RegisterSink(&g_SUPActivateEvent);
 	}
-
-
-	
-	//GetEventDispatcher<TESPowerOnEvent>()->AddEventSink(&g_SUPPowerOnEvent);
 	//GetEventDispatcher<TESPowerOffEvent>()->AddEventSink(&g_SUPPowerOffEvent);
 
 	//bEditorIDPatchLoaded = IsGetEditorIDPatchLoaded();

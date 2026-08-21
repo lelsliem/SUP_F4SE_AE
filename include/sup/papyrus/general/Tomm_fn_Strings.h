@@ -69,7 +69,14 @@ BSFixedString cmd_StringInsert(StaticFunctionTag* base, BSFixedString StringIN, 
 float cmd_StringToFloat(StaticFunctionTag* base, BSFixedString StringIN) // nor used
 {
 	string StringOUT = StringIN.c_str();
-	return std::stof(StringOUT);
+	// std::stof throws invalid_argument/out_of_range on bad input; an uncaught C++
+	// exception across the Papyrus boundary terminates the process, so return 0 instead.
+	try {
+		return std::stof(StringOUT);
+	}
+	catch (const std::exception&) {
+		return 0.0f;
+	}
 }
 
 UInt32 cmd_StringToInt(StaticFunctionTag* base, BSFixedString StringIN) //not used

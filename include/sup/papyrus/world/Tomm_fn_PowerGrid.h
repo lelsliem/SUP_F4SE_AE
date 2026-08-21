@@ -964,22 +964,10 @@ vector<TESObjectREFR*> f_GetWirelessObjectsInRangeForRadiator(TESObjectREFR* Wor
 
 void RadiatorFixProcessPowerOnOffEvent(bool bPoweredON, TESObjectREFR* Radiator, TESObjectREFR* WorkshopRef, Workshop::ExtraData* WorkshopData)
 {
-
-	//Console_Print("OnProcessWorkshopSwitch works,bPowerOff>>%d", bPoweredOff);
-	//_DMESSAGE("OnProcessWorkshopSwitch works,bPowerOff>>%d", bPoweredOff);
-
-	//if (!Radiator)
-	//{
-	//	_DMESSAGE("Switch is not valid!");
-	//	return;
-	//}
-
-	//if (!WorkshopRef)
-	//{
-	//	Console_Print("workshopRef is not valid!");
-	//	_DMESSAGE("workshopRef is not valid!");
-	//	return;
-	//}
+	if (!Radiator || !WorkshopRef || !WorkshopData || !g_RadiationActorValue)
+	{
+		return;
+	}
 
 
 	//Console_Print("Workshop>>%x", WorkshopRef->formID);
@@ -1479,12 +1467,249 @@ bool  cmd_IsObjectWirelessPowerReceiver(StaticFunctionTag* base, TESObjectREFR* 
 
 
 
+// --- Wireless fix: full power-grid diff engine (ported from Tommy's original) ---
+// The simplified version below only handled the case where the event source itself is the
+// radiator. Tommy's original snapshotted the whole workshop BEFORE the game's handler ran,
+// then diffed AFTER, calling RadiatorFixProcessPowerOnOffEvent for EVERY item whose power
+// state changed. That is what actually catches a NISTRON light being connected/disconnected
+// by a radiator when the radiator (not the light) is the event source.
+
+struct WorkshopStatus {
+	struct PowerGrid {
+		float capacity = 0;
+		float load = 0;
+		int iPoweredItemsCount = 0;
+		UInt32 ID = 0;
+		PowerUtils::PowerGrid* Pointer = NULL;
+	};
+	vector<PowerGrid> PowerGrids;
+	vector<UInt32> PoweredItems;
+	UInt32 PowerRating = 0;
+};
+
+WorkshopStatus GetWorkShopStatus(Workshop::ExtraData* WorkshopData, bool bGetWorkshopStatus, bool bGetPoweredItems)
+{
+	WorkshopStatus result;
+
+	if (bGetWorkshopStatus)
+	{
+		result.PowerGrids.reserve(WorkshopData->powerGrid.size());
+		result.PowerRating = WorkshopData->powerRating;
+	}
+
+	for (UInt64 i = 0; i < WorkshopData->powerGrid.size(); i++)
+	{
+		PowerUtils::PowerGrid* pGrid = NULL;
+		sup::compat::GetNthItem(WorkshopData->powerGrid, i, pGrid);
+		if (!pGrid)
+		{
+			continue;
+		}
+
+		if (bGetWorkshopStatus)
+		{
+			WorkshopStatus::PowerGrid NewPowerGrid;
+			NewPowerGrid.capacity = pGrid->capacity;
+			NewPowerGrid.load = pGrid->load;
+			NewPowerGrid.iPoweredItemsCount = static_cast<int>(pGrid->currentlyPowered.size());
+			NewPowerGrid.Pointer = pGrid;
+			NewPowerGrid.ID = static_cast<UInt32>(i);
+			result.PowerGrids.push_back(NewPowerGrid);
+		}
+
+		if (bGetPoweredItems)
+		{
+			result.PoweredItems.reserve(result.PoweredItems.capacity() + pGrid->currentlyPowered.size());
+
+			for (UInt64 j = 0; j < pGrid->currentlyPowered.size(); j++)
+			{
+				UInt32 CurrentlyPoweredID = 0;
+
+				if (sup::compat::GetNthItem(pGrid->currentlyPowered, j, CurrentlyPoweredID))
+				{
+					result.PoweredItems.push_back(CurrentlyPoweredID);
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+PowerGridChanges HasWorkshopChanged(WorkshopStatus& WorkshopStatusBefore, Workshop::ExtraData* WorkshopData)
+{
+	PowerGridChanges result;
+
+	if (WorkshopData->powerGrid.size() != WorkshopStatusBefore.PowerGrids.size())
+	{
+		_DMESSAGE("Power grid count changed");
+		result.bChanged = true;
+	}
+
+	if (WorkshopData->powerRating != WorkshopStatusBefore.PowerRating)
+	{
+		_DMESSAGE("Power rating changed, old>>%d,new>>%d", WorkshopStatusBefore.PowerRating, WorkshopData->powerRating);
+		result.bChanged = true;
+	}
+
+	for (UInt64 i = 0; i < WorkshopData->powerGrid.size(); i++)
+	{
+		PowerUtils::PowerGrid* pGrid = NULL;
+		sup::compat::GetNthItem(WorkshopData->powerGrid, i, pGrid);
+
+		if (!pGrid)
+		{
+			continue;
+		}
+
+		for (auto it = WorkshopStatusBefore.PowerGrids.begin(); it != WorkshopStatusBefore.PowerGrids.end(); it++)
+		{
+			if (Iter.Pointer == pGrid)
+			{
+				if (pGrid->capacity != Iter.capacity)
+				{
+					result.AffectedPowerGrids.push_back(Iter.ID);
+					WorkshopStatusBefore.PowerGrids.erase(it);
+					result.bChanged = true;
+					break;
+				}
+
+				if (pGrid->load != Iter.load)
+				{
+					result.AffectedPowerGrids.push_back(Iter.ID);
+					WorkshopStatusBefore.PowerGrids.erase(it);
+					result.bChanged = true;
+					break;
+				}
+
+				if (pGrid->currentlyPowered.size() != static_cast<std::size_t>(Iter.iPoweredItemsCount))
+				{
+					result.AffectedPowerGrids.push_back(Iter.ID);
+					WorkshopStatusBefore.PowerGrids.erase(it);
+					result.bChanged = true;
+					break;
+				}
+
+				WorkshopStatusBefore.PowerGrids.erase(it);
+				break;
+			}
+		}
+	}
+
+	if (result.AffectedPowerGrids.size() || WorkshopStatusBefore.PowerGrids.size())
+	{
+		result.bChanged = true;
+	}
+
+	for (auto it = WorkshopStatusBefore.PowerGrids.begin(); it != WorkshopStatusBefore.PowerGrids.end(); it++)
+	{
+		result.DeletedPowerGrids.push_back(Iter.ID);
+	}
+
+	return result;
+}
+
+// Diff engine: every item whose power state changed since the snapshot gets the radiator fix.
+void WirelessFixProcessChanges(WorkshopStatus& WorkshopStatusBefore, Workshop::ExtraData* WorkshopData, TESObjectREFR* WorkshopRef, UInt32 SelfFormID, int& iCheckForSelf, bool OnlyRemove)
+{
+	// Items that are powered NOW but were NOT in the before-snapshot -> switched ON.
+	for (UInt64 i = 0; i < WorkshopData->powerGrid.size(); i++)
+	{
+		PowerUtils::PowerGrid* pGrid = NULL;
+		sup::compat::GetNthItem(WorkshopData->powerGrid, i, pGrid);
+
+		if (!pGrid)
+		{
+			continue;
+		}
+
+		for (UInt64 j = 0; j < pGrid->currentlyPowered.size(); j++)
+		{
+			UInt32 CurrentlyPoweredID = 0;
+
+			if (!sup::compat::GetNthItem(pGrid->currentlyPowered, j, CurrentlyPoweredID))
+			{
+				continue;
+			}
+
+			bool bFound = false;
+			for (auto it = WorkshopStatusBefore.PoweredItems.begin(); it != WorkshopStatusBefore.PoweredItems.end(); it++)
+			{
+				if (Iter == CurrentlyPoweredID)
+				{
+					bFound = true;
+					WorkshopStatusBefore.PoweredItems.erase(it);
+					break;
+				}
+			}
+
+			if (!bFound && !OnlyRemove)
+			{
+				// Item switched ON.
+				TESObjectREFR* CurrentObject = (TESObjectREFR*)LookupFormByID(CurrentlyPoweredID);
+
+				if (CurrentObject)
+				{
+					if (SelfFormID == CurrentlyPoweredID)
+					{
+						iCheckForSelf = 0;
+					}
+
+					_DMESSAGE("Wireless processchanged calls RadiatorFixProcessPowerOnOffEvent TRUE>>%x", CurrentObject->formID);
+					RadiatorFixProcessPowerOnOffEvent(true, CurrentObject, WorkshopRef, WorkshopData);
+				}
+			}
+		}
+	}
+
+	// Items in the before-snapshot that are no longer powered -> switched OFF.
+	for (auto it = WorkshopStatusBefore.PoweredItems.begin(); it != WorkshopStatusBefore.PoweredItems.end(); it++)
+	{
+		TESObjectREFR* CurrentObject = (TESObjectREFR*)LookupFormByID(Iter);
+		if (CurrentObject)
+		{
+			if (SelfFormID == Iter)
+			{
+				iCheckForSelf = 0;
+			}
+			_DMESSAGE("Wireless processchanged calls RadiatorFixProcessPowerOnOffEvent FALSE>>%x", CurrentObject->formID);
+			RadiatorFixProcessPowerOnOffEvent(false, CurrentObject, WorkshopRef, WorkshopData);
+		}
+	}
+}
+
+bool ProcessWirelessReferenceEvent(TESObjectREFR* WorkshopRef, TESObjectREFR* SourceRef)
+{
+	if (!bWirelessPowerFix || !WorkshopRef || !SourceRef || !g_RadiationActorValue)
+	{
+		return false;
+	}
+
+	Workshop::ExtraData* WorkshopData = f_GetPowerGridExtraData(WorkshopRef);
+	if (!WorkshopData)
+	{
+		return false;
+	}
+
+	const bool powered = sup::compat::IsPowered(WorkshopData, SourceRef);
+	RadiatorFixProcessPowerOnOffEvent(powered, SourceRef, WorkshopRef, WorkshopData);
+
+	if (OnWorkshopPowerStateChangeEventHandler.HasEvents())
+	{
+		PowerGridChanges changes;
+		changes.bChanged = true;
+		OnWorkshopPowerStateChangeEventHandler.ProcessEventOnWorkshopPowerStateChange(SourceRef, WorkshopRef, changes, 3, nullptr, nullptr, nullptr);
+	}
+
+	return true;
+}
+
 bool  cmd_WorkshopGenerateFakeReferenceEvent(StaticFunctionTag* base, TESObjectREFR* WorkshopRef, TESObjectREFR* SourceRef)
 {
 	_DMESSAGE("GenerateFakeWorkshopHandleReferenceEvent starts");
 	if (!WorkshopRef)
 	{
-		_DMESSAGE("WOrkshop not valid");
+		_DMESSAGE("Workshop not valid");
 		return false;
 	}
 
@@ -1494,11 +1719,15 @@ bool  cmd_WorkshopGenerateFakeReferenceEvent(StaticFunctionTag* base, TESObjectR
 		return false;
 	}
 
-	// DISABLED (Phase 4): the Address Library ID for OnWorkshopHandleReferenceEvent is
-	// unverified and lands mid-function — calling it would crash. Re-enable once a verified
-	// ID (or a RE::Workshop member function) is available.
-	//OnWorkshopHandleReferenceEvent_Hook(WorkshopRef, SourceRef);
-	return true;
+	// Guard: only process if the source ref is still alive and valid.
+	// During device reset/deletion, NISTRON may call this with a ref being removed.
+	if (SourceRef->IsDeleted() || SourceRef->IsDisabled())
+	{
+		_DMESSAGE("GenerateFakeEvent: SourceRef deleted/disabled, skipping");
+		return false;
+	}
+
+	return ProcessWirelessReferenceEvent(WorkshopRef, SourceRef);
 }
 
 

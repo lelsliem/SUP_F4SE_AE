@@ -35,6 +35,9 @@ bool RegisterFuncs(VirtualMachine* vm) {
 	vm->RegisterFunction(new NativeFunction1<StaticFunctionTag, UInt32, BSFixedString>("StringGetLength", pluginName, cmd_StringGetLength, vm));
 	vm->RegisterFunction(new NativeFunction2<StaticFunctionTag, bool, BSFixedString, BSFixedString>("StringContains", pluginName, cmd_StringContains, vm));
 	vm->RegisterFunction(new NativeFunction3<StaticFunctionTag, BSFixedString, BSFixedString, BSFixedString, UInt32>("StringInsert", pluginName, cmd_StringInsert, vm));
+	vm->RegisterFunction(new NativeFunction1<StaticFunctionTag, float, BSFixedString>("StringToFloat", pluginName, cmd_StringToFloat, vm));
+	vm->RegisterFunction(new NativeFunction1<StaticFunctionTag, UInt32, BSFixedString>("StringToInt", pluginName, cmd_StringToInt, vm));
+	vm->RegisterFunction(new NativeFunction1<StaticFunctionTag, BSFixedString, BSFixedString>("StringToUpper", pluginName, cmd_StringToUpper, vm));
 	vm->RegisterFunction(new NativeFunction1<StaticFunctionTag, UInt32, BSFixedString>("FileGetLinesCount", pluginName, cmd_FileGetLinesCount, vm));
 	vm->RegisterFunction(new NativeFunction3<StaticFunctionTag, BSFixedString, BSFixedString, UInt32, UInt32>("ReadStringFromFile", pluginName, cmd_ReadStringFromFile, vm));
 	vm->RegisterFunction(new NativeFunction2<StaticFunctionTag, VMArray<BSFixedString>, BSFixedString, UInt32>("FileGetFileTime", pluginName, cmd_FileGetFileTime, vm));
@@ -83,6 +86,7 @@ bool RegisterFuncs(VirtualMachine* vm) {
 	vm->RegisterFunction(new NativeFunction1<StaticFunctionTag, bool, BSFixedString>("ModLocalDataRemoveAllKeys", pluginName, cmd_ModLocalDataRemoveAllKeys, vm));
 	vm->RegisterFunction(new NativeFunction1<StaticFunctionTag, void, BSFixedString>("ModLocalDataDumpToConsole", pluginName, cmd_ModLocalDataDumpToConsole, vm));
 	vm->RegisterFunction(new NativeFunction1<StaticFunctionTag, VMArray<ModLocalDataElement>, BSFixedString>("ModLocalDataDumpToArray", pluginName, cmd_ModLocalDataDumpToArray, vm));
+	vm->RegisterFunction(new NativeFunction0<StaticFunctionTag, TESObjectREFR*>("SUPGetCurrentConsoleReference", pluginName, cmd_SUPGetCurrentConsoleReference, vm));
 
 	vm->RegisterFunction(new NativeFunction3<StaticFunctionTag, bool, BSFixedString, BSFixedString, UInt32>("StringRegexMatch", pluginName, cmd_StringRegexMatch, vm));
 	vm->RegisterFunction(new NativeFunction3<StaticFunctionTag, VMArray<BSFixedString>, BSFixedString, BSFixedString, UInt32>("StringRegexSearch", pluginName, cmd_StringRegexSearch, vm));
@@ -413,7 +417,14 @@ bool RegisterFuncs(VirtualMachine* vm) {
 	vm->RegisterFunction(new NativeFunction1<StaticFunctionTag, bool, UInt32>("RemoveFromGameMainLoopCallback", pluginName, cmd_RemoveFromGameMainLoopCallback, vm));
 
 	vm->RegisterFunction(new NativeFunction10<StaticFunctionTag, UInt32,TESForm*, UInt32, UInt32, UInt32, UInt32, UInt32, UInt32, UInt32, UInt32, UInt32>("IsAnyOfTypes", pluginName, cmd_IsAnyOfTypes, vm));
-	vm->RegisterFunction(new NativeFunction8<StaticFunctionTag, UInt32, BSFixedString, BSFixedString, BSFixedString, bool, bool, bool, UInt32, VMArray<VMVariable>>("SetEventHandler", pluginName, cmd_SetEventHandler, vm));
+	// UNREGISTERED: SetEventHandler is a legacy API that was a dead stub in every SUP release
+	// (its body only shows "this function was removed from the plugin" and returns -1 — the
+	// same stub shipped in Tommy's original 1.10.163). The supported API is
+	// RegisterForSUPEvent; no installed mod calls SetEventHandler (NetLink uses
+	// RegisterForSUPEvent, NISTRON uses SUPStringFind/StringRemoveWhiteSpace only).
+	// Keeping it registered exposed the arg-unpack path to null-backed Var[] args (the
+	// NISTRON device-reset CTD); unregistering fails the call cleanly at the VM instead.
+	//vm->RegisterFunction(new NativeFunction8<StaticFunctionTag, UInt32, BSFixedString, BSFixedString, BSFixedString, bool, bool, bool, UInt32, VMArray<VMVariable>>("SetEventHandler", pluginName, cmd_SetEventHandler, vm));
 
 
 	vm->RegisterFunction(new NativeFunction6<StaticFunctionTag, VMArray<TESForm*>,TESObjectREFR*, TESForm*, TESForm*,bool,bool,bool>("GetInventoryItemsByKeyword", pluginName, cmd_GetInventoryItemsByKeyword, vm));

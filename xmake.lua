@@ -20,7 +20,7 @@ if os.host() == "windows" then
     set_config("plat", "windows")
 end
 
-set_version("0.7.8")
+set_version("0.8.0")
 
 set_languages("c++23")
 set_encodings("utf-8")
@@ -37,7 +37,7 @@ else
 end
 
 -- Vendored CommonLibF4 (its lib/commonlib-shared submodule is populated).
-includes("Depends/commonlibf4-5ba1928a32c6ccd5690164b79066fc2f5dcb5c65")
+includes("Depends/commonlibf4-main")
 
 target("SUP_F4SE", function()
     set_kind("shared")
@@ -46,7 +46,7 @@ target("SUP_F4SE", function()
         name        = "SUP F4SE",
         author      = "SUP",
         description = "SUP F4SE - Papyrus function library and settlement tools",
-        version     = "0.7.8",
+        version     = "0.8.0",
     })
 
     add_files("src/main.cpp")

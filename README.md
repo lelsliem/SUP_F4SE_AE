@@ -1,8 +1,11 @@
 # SUP F4SE — Script Utilities Plus
 
 A continuation of **Tomm's SUP F4SE** for Fallout 4, rebuilt for the modern
-runtime: Fallout 4 **1.11.221** (Next-Gen / AE), F4SE **0.7.8**, built with
-**CommonLibF4** on MSVC v143 / C++23 via xmake.
+Next-Gen / AE runtimes — **1.11.137 / 1.11.159 / 1.11.169 / 1.11.191 /
+1.11.221 / 1.11.240** — with F4SE **0.7.9** (official for 1.11.240), built
+with **CommonLibF4** on MSVC v143 / C++23 via xmake. Addresses resolve through
+the Address Library at runtime, so the same DLL works on every AE version as
+long as the matching `version-1-11-*.bin` database is installed.
 
 This README is the honest version. It says what works, what had to be removed
 and why, who made what, and what the legal situation actually is. The full
@@ -31,11 +34,12 @@ plainly:
 - **Datanomicron's SUP-F4SE-NG** (github.com/Datanomicron/SUP-F4SE-NG, Dec
   2025) updated the original to the Next-Gen runtime (1.11.191) with Claude AI
   assistance. That repository declares **no license**.
-- **lelsliem's SUP_F4SE_AE** (Aug 2026) carried that update to 1.11.221 /
-  F4SE 0.7.8 (v0.78).
-- **This repository** is a from-the-ground-up rebuild of the 1.11.221 source on
-  CommonLibF4, performed by a **Codebuff coding agent** at the request of the
-  repo owner.
+- **lelsliem's SUP_F4SE_AE** (Aug 2026) carried that update to the AE runtimes
+  (v0.78 for 1.11.221; this v0.8.0 continues to 1.11.240 and restores the
+  wireless power fix).
+- **This repository** is a from-the-ground-up rebuild of the modernized source
+  on CommonLibF4, performed by a **Codebuff coding agent** at the request of
+  the repo owner.
 
 So: there is no explicit upstream permission for any of this chain. Credit is
 preserved for everyone involved, and if Tomm or Datanomicron ever objects, this
@@ -50,11 +54,19 @@ cosave, and third-party settlement mods like NISTRON Smart Home):
 - **All 450+ Papyrus functions register and load** — the plugin boots clean,
   zero type-info errors, all 18 structs resolve. The `.psc` source ships in the
   package so other mods can compile against it.
-- **18 C++ hooks** install via the Address Library (REL IDs), logged at
-  startup: game loop, cell-seen data, radio add/state, quest active/completed/
-  failed, console command, script compile, player map markers, knock explosion,
-  get-up-from-knock, set-wants-delete, grid connection add/remove, workshop
-  reference events, apply dismemberment.
+- **C++ hooks** install via the Address Library (REL IDs), logged at startup:
+  grid connection add/remove, connect-to-radiator, workshop reference events
+  (the wireless power path), set-wants-delete, and apply-dismemberment. Each
+  hook's address and function signature were verified against the 1.11.240
+  executable before being enabled; the hooks whose upstream signatures no
+  longer match the modern game (quest lifecycle, radio, console command,
+  script compile, map markers, knock events) are deliberately left disabled
+  with the evidence documented in `Tomm_Hooks.h` rather than shipped as latent
+  crash bugs.
+- **The wireless power fix** (`bWirelessPowerFix`) — restored and working.
+  `OnWorkshopHandleReferenceEvent` fires on workshop reference events and runs
+  the full `WirelessFixProcessChanges` / `RadiatorFixProcessPowerOnOffEvent`
+  chain, so wireless devices (radiators, lights) power on/off correctly.
 - **Wiring and power grid** work, including the connect-point snap query path
   that crashed repeatedly during development — it is now wrapped in SEH guards.
 - **Events and cosave** work (events persist to the cosave, as the original
@@ -77,10 +89,13 @@ cosave, and third-party settlement mods like NISTRON Smart Home):
 Not everything survived the move to the modern runtime. This is the honest
 list:
 
-- **The wireless power fix** (`bWirelessPowerFix`) — dropped during the crash
-  investigation when the wireless-power path was implicated. The INI key is
-  gone entirely; if it is ever re-added it will be a fresh implementation on a
-  verified address.
+- **Legacy hooks whose signatures no longer match the modern game** — the
+  quest active/completed/failed, radio add, console command, script compile,
+  player map-marker, knock explosion, and get-up-from-knock hooks were
+  re-enabled during the 1.11.240 port and each one crashed at runtime with a
+  wrong-signature call. They are disabled with the disassembly evidence inline
+  in `Tomm_Hooks.h`. Restoring them means re-typing each hook against the real
+  function signature at its Address Library ID — tracked as future work.
 - **The dev test harness** — the native 64-check self-test battery, the
   `SUP_STRUCT_PRE` startup diagnostic, `SUPSelfTest.esp`, the holotape test
   scripts, and the ESP generator script were all removed for the release build.
@@ -112,19 +127,23 @@ list:
   functional.
 - The `Iter` macro family (740+ uses) is kept as-is — flagged, but stable.
 - Some original SUP functions simply have no valid address or modern
-  equivalent on 1.11.221; they were removed rather than shipped broken.
+  equivalent on the AE runtimes; they were removed rather than shipped broken.
 - The console banner prints the legacy `iVersion`-derived string
   (`SUP F4SE V.11.70`) rather than the DLL's own version — cosmetic only; the
   game-formatter float bug that made it print `v0.00` is fixed in the
   `Console_Print` shim.
-- Only F4SE 0.7.8 / runtime 1.11.221 is targeted. Older runtimes are not
-  supported by this build.
+- Multi-version by design: the plugin declares compatibility with all six AE
+  runtimes (1.11.137/159/169/191/221/240) and every address resolves through
+  the Address Library, so no per-version build is needed.
 
 ## Requirements
 
-- Fallout 4 Next-Gen / AE (runtime **1.11.221**)
-- F4SE **0.7.8**
-- **Address Library for F4SE Plugins** (NG version)
+- Fallout 4 Next-Gen / AE (runtime **1.11.137 / 1.11.159 / 1.11.169 /
+  1.11.191 / 1.11.221 / 1.11.240**)
+- F4SE **0.7.9** (official F4SE for 1.11.240)
+- **Address Library for F4SE Plugins** (NG version) — the matching
+  `version-1-11-*.bin` for your runtime must be present in
+  `Data/F4SE/Plugins/`
 
 ## Building
 
@@ -146,7 +165,7 @@ box.
 
 The packaged mod (Data/F4SE/Plugins + Data/Scripts + fomod) is in `Package/`,
 or use the zip. `SUP_F4SE.ini` controls: `bDebugMode`, `bScrapCrashFix`,
-`bTermLinkFix`, `bDisableAllHooks`.
+`bTermLinkFix`, `bWirelessPowerFix`, `bDisableAllHooks`.
 
 ## Documentation
 
@@ -160,8 +179,9 @@ or use the zip. `SUP_F4SE.ini` controls: `bDebugMode`, `bScrapCrashFix`,
   work, and it is credited and preserved in good faith.
 - **Datanomicron** — the Next-Gen update (SUP-F4SE-NG) that first mapped the
   functions to the Address Library.
-- **lelsliem** — the 1.11.221 / F4SE 0.7.8 update (v0.78) this repository
-  continues.
+- **lelsliem** — the AE runtime update (v0.78) this repository continues,
+  plus the 1.11.240 port, the restored wireless power fix, and the hook
+  signature audit.
 - **Codebuff (coding agent)** — performed the CommonLibF4 modernization, the
   crash fixes, and this documentation at the request of the repo owner.
 

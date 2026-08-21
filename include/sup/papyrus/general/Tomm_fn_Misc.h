@@ -1820,17 +1820,17 @@ bool cmd_IsIPInTheSameSubnet(StaticFunctionTag* tag, UInt32 NetIP, UInt32 NetSub
 //}
 
 
-//TESObjectREFR* cmd_SUPGetCurrentConsoleReference(StaticFunctionTag* base)
-//{
-//    	UInt32 handle = (*g_consoleHandle);
-//    	NiPointer<TESObjectREFR> refr;
-//    	if (handle != 0 && handle != (*g_invalidRefHandle)) {
-//    		LookupREFRByHandle(handle, refr);
-//    		return refr;
-//    	}
-//    
-//    	return nullptr;
-//}
+TESObjectREFR* cmd_SUPGetCurrentConsoleReference(StaticFunctionTag* base)
+{
+	UInt32 handle = (*g_consoleHandle);
+	NiPointer<TESObjectREFR> refr;
+	if (handle != 0 && handle != (*g_invalidRefHandle)) {
+		LookupREFRByHandle(handle, refr);
+		return refr.get();
+	}
+
+	return nullptr;
+}
 
 
 //TESObjectREFR* GetCurrentConsoleRef()

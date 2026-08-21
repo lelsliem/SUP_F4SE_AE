@@ -17,7 +17,7 @@ namespace INIManagement {
             bool bSetDefaultValueInIni = true;
         };
 
-        std::vector<INISetting> IniSettings = { INISetting{ "bDebugMode", bDebugMode, false, true}, INISetting{ "bSkipPexCheck", bSkipPexCheck, false,false }, INISetting{ "bScrapCrashFix", bScrapCrashFix,true,true  }, INISetting{ "bTermLinkFix", bTermLinkFix,true,true } };
+        std::vector<INISetting> IniSettings = { INISetting{ "bDebugMode", bDebugMode, false, true}, INISetting{ "bSkipPexCheck", bSkipPexCheck, false,false }, INISetting{ "bScrapCrashFix", bScrapCrashFix,true,true  }, INISetting{ "bTermLinkFix", bTermLinkFix,true,true }, INISetting{ "bWirelessPowerFix", bWirelessPowerFix,true,true }, INISetting{ "bDisableAllHooks", bDisableAllHooks,false,true } };
 
         std::vector<INISetting> SettingsToSet{};
 

@@ -6,10 +6,19 @@ companion to [README.md](README.md). The modernization itself was performed by a
 **Codebuff coding agent** at the request of the repo owner; upstream credit and
 the licensing situation are covered in the README.
 
-**Status:** ALL PHASES COMPLETE. Release build (`e658e05a` — test-harness-stripped) ready in `Package/` + zip; only user soak-testing remains.
-**Target runtime:** Fallout 4 1.11.221 (AE) — the AE port is complete and the
-`SUP_F4SE_AE my updated to 1.11.221/` reference folder has been deleted.
+**Status:** ALL PHASES COMPLETE. v0.8.0 released — 1.11.240 port, multi-version
+(1.11.137/159/169/191/221/240), wireless power fix restored, hook signature
+audit complete.
+**Target runtime:** Fallout 4 AE — 1.11.137 / 1.11.159 / 1.11.169 / 1.11.191 /
+1.11.221 / 1.11.240 (multi-version via the Address Library; F4SE 0.7.9).
+The `SUP_F4SE_AE my updated to 1.11.221/` reference folder has been deleted.
 **Target toolchain:** MSVC v143, `/std:c++23`, static runtime `/MT` (Release), `/MTd` (Debug).
+**v0.8.0 delta (post-221):** runtime bumped to 1.11.240 / F4SE 0.7.9; the
+plugin's `CompatibleVersions` now lists all six AE runtimes; the wireless
+power fix was restored (OnWorkshopHandleReferenceEvent + WirelessFixProcessChanges /
+RadiatorFixProcessPowerOnOffEvent, verified with NISTRON Smart Home); every
+enabled hook was disassembled against the 1.11.240 exe and the wrong-signature
+ones disabled with evidence inline in `Tomm_Hooks.h`.
 **Dependencies:** CommonLibF4 (already vendored in `Depends/commonlibf4-…`) instead of the
 F4SE source tree + `common` + Boost 1.84. spdlog (pulled in by CommonLibF4) instead of `gLog`/`IDebugLog`.
 Keep `json.hpp` (nlohmann) as-is — it's header-only, self-contained, and works fine.

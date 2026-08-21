@@ -502,13 +502,17 @@ using ModInfo = RE::TESFile;
 	return cc && cc->context.m_currentState == RE::hknpCharacterState::hknpCharacterStateType::kInAir;
 }
 
-// F4SE ActorValueOwner::GetValue on a reference -> Actor::GetActorValue when it is an actor.
+// F4SE ActorValueOwner::GetValue(a_refr) -> the ActorValueOwner virtual on the reference itself.
+// TESObjectREFR publicly inherits ActorValueOwner (offset 0x58), so GetActorValue dispatches on the
+// ref's own ActorValueOwner vtable — this works for ANY ref (workshop radiators are non-actor
+// devices whose "Radiation" AV lives in the ref's AV extra data). Restricting to As<Actor>() made
+// the wireless fix silently no-op for non-actor radiators (NISTRON devices), which is why lights
+// never got connected/powered. Slot 01 here = F4SE's ActorValueOwner::GetValue (Tommy's original).
 [[nodiscard]] inline float ActorValueFromRefr(const RE::TESObjectREFR* a_refr, const RE::ActorValueInfo* a_av)
 {
 	if (!a_refr || !a_av)
 		return 0.0f;
-	const auto* actor = a_refr->As<RE::Actor>();
-	return actor ? actor->GetActorValue(*a_av) : 0.0f;
+	return a_refr->GetActorValue(*a_av);
 }
 
 namespace sup::compat
@@ -2172,6 +2176,15 @@ namespace sup::compat
 			if (arr) {
 				args.reserve(arr->size());
 				for (const auto& var : arr->elements) {
+					// A kArray-typed Variable whose backing BSScript::Array is null cannot be
+					// copied: the copy deep-copies the element buffer and derefs [Array+0x18]
+					// (Array::elements), crashing the game (CTD in cmd_NotifyReferenceScriptsEx
+					// -> CallFunctionNoWait_Internal on NISTRON device reset). Substitute a
+					// None (F4SE semantics for an empty var[] element).
+					if (var.is<BSScript::Array>() && !RE::BSScript::get<BSScript::Array>(var)) {
+						args.push_back(BSScript::Variable());
+						continue;
+					}
 					args.push_back(var);
 				}
 			}
@@ -2203,6 +2216,12 @@ namespace sup::compat
 			if (arr) {
 				args.reserve(arr->size());
 				for (const auto& var : arr->elements) {
+					// See CallGlobalFunctionNoWait_Internal: null-backed array elements
+					// cannot be deep-copied (derefs [Array+0x18]); substitute None.
+					if (var.is<BSScript::Array>() && !RE::BSScript::get<BSScript::Array>(var)) {
+						args.push_back(BSScript::Variable());
+						continue;
+					}
 					args.push_back(var);
 				}
 			}

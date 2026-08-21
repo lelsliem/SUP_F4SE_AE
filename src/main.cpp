@@ -29,7 +29,7 @@ F4SE_PLUGIN_LOAD(const F4SE::LoadInterface* a_f4se)
 	F4SE::Init(a_f4se, {
 		.logName        = "SUP_F4SE",  // CommonLibF4 appends ".log" itself
 		.logPattern     = "[%Y-%m-%d %H:%M:%S.%e] [%l] %v",
-		.logRotate      = 10,
+		.logRotate      = 0,  // single SUP_F4SE.log — no rotated .1/.2/.10 copies
 		.trampoline     = true,  // Phase 4: hooks install via REL::GetTrampoline()
 		.trampolineSize = 2048,  // 18 hook branches + headroom
 	});
